@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Shooter Game</title>
+    <title>Mouse-Controlled Shooter Game</title>
     <style>
         body {
             margin: 0;
@@ -46,17 +46,15 @@
 
         document.getElementById('scoreboard').innerText = `Score: ${score}`;
 
-        // Player controls
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft' && player.x > 0) {
-                player.x -= 15;
-            }
-            if (e.key === 'ArrowRight' && player.x < canvas.width - player.width) {
-                player.x += 15;
-            }
-            if (e.key === ' ') {
-                bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, width: 4, height: 10 });
-            }
+        // Update player position based on mouse movement
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            player.x = e.clientX - rect.left - player.width / 2;
+        });
+
+        // Shoot bullets on mouse click
+        canvas.addEventListener('click', () => {
+            bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, width: 4, height: 10 });
         });
 
         // Enemy generator
@@ -120,4 +118,3 @@
     </script>
 </body>
 </html>
-
