@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>block bullet</title>
+    <title>Shooter Game with Restart</title>
     <style>
         body {
             margin: 0;
@@ -27,36 +27,66 @@
         #gameOverMessage {
             display: none;
             position: fixed;
-            top: 50%;
+            top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
+            text-align: center;
             font-size: 40px;
             color: red;
-            text-align: center;
+        }
+        #restartButton {
+            display: none;
+            position: fixed;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            padding: 10px 20px;
+            background: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #restartButton:hover {
+            background: #0056b3;
         }
     </style>
 </head>
 <body>
     <div id="scoreboard">Score: 0 | Lives: 3</div>
     <div id="gameOverMessage">Game Over<br>Your Score: 0</div>
+    <button id="restartButton" onclick="restartGame()">Restart</button>
     <canvas id="gameCanvas"></canvas>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreboard = document.getElementById('scoreboard');
         const gameOverMessage = document.getElementById('gameOverMessage');
+        const restartButton = document.getElementById('restartButton');
 
         // Set canvas dimensions
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
         // Game variables
-        let player = { x: canvas.width / 2, y: canvas.height - 50, width: 20, height: 20 };
-        let bullets = [];
-        let enemies = [];
-        let score = 0;
-        let lives = 3;
-        let gameOver = false;
+        let player, bullets, enemies, score, lives, gameOver;
+
+        // Initialize game variables
+        function initGame() {
+            player = { x: canvas.width / 2, y: canvas.height - 50, width: 20, height: 20 };
+            bullets = [];
+            enemies = [];
+            score = 0;
+            lives = 3;
+            gameOver = false;
+
+            scoreboard.textContent = `Score: ${score} | Lives: ${lives}`;
+            gameOverMessage.style.display = 'none';
+            restartButton.style.display = 'none';
+
+            updateGame();
+        }
 
         // Update player position based on mouse movement
         canvas.addEventListener('mousemove', (e) => {
@@ -71,8 +101,10 @@
 
         // Enemy generator
         setInterval(() => {
-            const x = Math.random() * (canvas.width - 20);
-            enemies.push({ x: x, y: 0, width: 20, height: 20 });
+            if (!gameOver) {
+                const x = Math.random() * (canvas.width - 20);
+                enemies.push({ x: x, y: 0, width: 20, height: 20 });
+            }
         }, 1000);
 
         // Update and draw everything
@@ -104,8 +136,7 @@
 
                     if (lives <= 0) {
                         gameOver = true;
-                        gameOverMessage.style.display = 'block';
-                        gameOverMessage.innerHTML = `Game Over<br>Your Score: ${score}`;
+                        endGame();
                     }
                 }
                 ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
@@ -131,8 +162,20 @@
             if (!gameOver) requestAnimationFrame(updateGame);
         }
 
+        // End the game
+        function endGame() {
+            gameOverMessage.style.display = 'block';
+            gameOverMessage.innerHTML = `Game Over<br>Your Score: ${score}`;
+            restartButton.style.display = 'block';
+        }
+
+        // Restart the game
+        function restartGame() {
+            initGame();
+        }
+
         // Start game
-        updateGame();
+        initGame();
     </script>
 </body>
 </html>
