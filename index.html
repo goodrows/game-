@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shooter Game with Restart</title>
+    <title>Shooter Game with Pause</title>
     <style>
         body {
             margin: 0;
@@ -23,6 +23,22 @@
             left: 10px;
             font-size: 20px;
             z-index: 10;
+        }
+        #pauseButton {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            font-size: 16px;
+            padding: 5px 10px;
+            background: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #pauseButton:hover {
+            background: #0056b3;
         }
         #gameOverMessage {
             display: none;
@@ -55,6 +71,7 @@
 </head>
 <body>
     <div id="scoreboard">Score: 0 | Lives: 3</div>
+    <button id="pauseButton" onclick="togglePause()">Pause</button>
     <div id="gameOverMessage">Game Over<br>Your Score: 0</div>
     <button id="restartButton" onclick="restartGame()">Restart</button>
     <canvas id="gameCanvas"></canvas>
@@ -62,6 +79,7 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreboard = document.getElementById('scoreboard');
+        const pauseButton = document.getElementById('pauseButton');
         const gameOverMessage = document.getElementById('gameOverMessage');
         const restartButton = document.getElementById('restartButton');
 
@@ -70,7 +88,7 @@
         canvas.height = window.innerHeight;
 
         // Game variables
-        let player, bullets, enemies, score, lives, gameOver;
+        let player, bullets, enemies, score, lives, gameOver, paused;
 
         // Initialize game variables
         function initGame() {
@@ -80,6 +98,7 @@
             score = 0;
             lives = 3;
             gameOver = false;
+            paused = false;
 
             scoreboard.textContent = `Score: ${score} | Lives: ${lives}`;
             gameOverMessage.style.display = 'none';
@@ -96,20 +115,29 @@
 
         // Shoot bullets on mouse click
         canvas.addEventListener('click', () => {
-            bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, width: 4, height: 10 });
+            if (!paused && !gameOver) {
+                bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, width: 4, height: 10 });
+            }
         });
 
         // Enemy generator
         setInterval(() => {
-            if (!gameOver) {
+            if (!paused && !gameOver) {
                 const x = Math.random() * (canvas.width - 20);
                 enemies.push({ x: x, y: 0, width: 20, height: 20 });
             }
         }, 1000);
 
+        // Toggle pause
+        function togglePause() {
+            paused = !paused;
+            pauseButton.textContent = paused ? "Resume" : "Pause";
+            if (!paused && !gameOver) updateGame();
+        }
+
         // Update and draw everything
         function updateGame() {
-            if (gameOver) return;
+            if (gameOver || paused) return;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -179,3 +207,4 @@
     </script>
 </body>
 </html>
+
