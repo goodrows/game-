@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shooter Game with Lives</title>
+    <title>block bullet</title>
     <style>
         body {
             margin: 0;
@@ -24,14 +24,27 @@
             font-size: 20px;
             z-index: 10;
         }
+        #gameOverMessage {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            color: red;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div id="scoreboard">Score: 0 | Lives: 3</div>
+    <div id="gameOverMessage">Game Over<br>Your Score: 0</div>
     <canvas id="gameCanvas"></canvas>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const scoreboard = document.getElementById('scoreboard');
+        const gameOverMessage = document.getElementById('gameOverMessage');
 
         // Set canvas dimensions
         canvas.width = window.innerWidth;
@@ -44,8 +57,6 @@
         let score = 0;
         let lives = 3;
         let gameOver = false;
-
-        const scoreboard = document.getElementById('scoreboard');
 
         // Update player position based on mouse movement
         canvas.addEventListener('mousemove', (e) => {
@@ -93,7 +104,8 @@
 
                     if (lives <= 0) {
                         gameOver = true;
-                        alert(`Game Over! Your score: ${score}`);
+                        gameOverMessage.style.display = 'block';
+                        gameOverMessage.innerHTML = `Game Over<br>Your Score: ${score}`;
                     }
                 }
                 ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
