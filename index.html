@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shooter Game with Pause</title>
+    <title>Shooter Game with Waves, Audio, and Background Effects</title>
     <style>
         body {
             margin: 0;
@@ -15,7 +15,6 @@
         canvas {
             display: block;
             margin: 0 auto;
-            background: #222;
         }
         #scoreboard {
             position: fixed;
@@ -70,11 +69,20 @@
     </style>
 </head>
 <body>
-    <div id="scoreboard">Score: 0 | Lives: 3</div>
+    <div id="scoreboard">Score: 0 | Lives: 3 | Wave: 1</div>
     <button id="pauseButton" onclick="togglePause()">Pause</button>
     <div id="gameOverMessage">Game Over<br>Your Score: 0</div>
     <button id="restartButton" onclick="restartGame()">Restart</button>
     <canvas id="gameCanvas"></canvas>
+    <audio id="backgroundMusic" loop>
+        <source src="https://www.soundjay.com/button/beep-07.wav" type="audio/wav">
+    </audio>
+    <audio id="shootSound">
+        <source src="https://www.soundjay.com/button/beep-07.wav" type="audio/wav">
+    </audio>
+    <audio id="hitSound">
+        <source src="https://www.soundjay.com/button/beep-07.wav" type="audio/wav">
+    </audio>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -82,13 +90,16 @@
         const pauseButton = document.getElementById('pauseButton');
         const gameOverMessage = document.getElementById('gameOverMessage');
         const restartButton = document.getElementById('restartButton');
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const shootSound = document.getElementById('shootSound');
+        const hitSound = document.getElementById('hitSound');
 
         // Set canvas dimensions
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
         // Game variables
-        let player, bullets, enemies, score, lives, gameOver, paused;
+        let player, bullets, enemies, score, lives, wave, gameOver, paused, backgroundY;
 
         // Initialize game variables
         function initGame() {
@@ -97,36 +108,28 @@
             enemies = [];
             score = 0;
             lives = 3;
+            wave = 1;
             gameOver = false;
             paused = false;
+            backgroundY = 0;
 
-            scoreboard.textContent = `Score: ${score} | Lives: ${lives}`;
+            scoreboard.textContent = `Score: ${score} | Lives: ${lives} | Wave: ${wave}`;
             gameOverMessage.style.display = 'none';
             restartButton.style.display = 'none';
 
+            backgroundMusic.play();
+
+            spawnEnemies();
             updateGame();
         }
 
-        // Update player position based on mouse movement
-        canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            player.x = e.clientX - rect.left - player.width / 2;
-        });
-
-        // Shoot bullets on mouse click
-        canvas.addEventListener('click', () => {
-            if (!paused && !gameOver) {
-                bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, width: 4, height: 10 });
-            }
-        });
-
-        // Enemy generator
-        setInterval(() => {
-            if (!paused && !gameOver) {
+        // Spawn enemies for the current wave
+        function spawnEnemies() {
+            for (let i = 0; i < wave * 5; i++) {
                 const x = Math.random() * (canvas.width - 20);
-                enemies.push({ x: x, y: 0, width: 20, height: 20 });
+                enemies.push({ x: x, y: -Math.random() * 200, width: 20, height: 20 });
             }
-        }, 1000);
+        }
 
         // Toggle pause
         function togglePause() {
@@ -140,6 +143,13 @@
             if (gameOver || paused) return;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw scrolling background
+            backgroundY += 2;
+            if (backgroundY > canvas.height) backgroundY = 0;
+            ctx.fillStyle = "#222";
+            ctx.fillRect(0, backgroundY, canvas.width, canvas.height);
+            ctx.fillRect(0, backgroundY - canvas.height, canvas.width, canvas.height);
 
             // Draw player
             ctx.fillStyle = '#0f0';
@@ -156,11 +166,11 @@
             // Move and draw enemies
             ctx.fillStyle = '#f00';
             enemies.forEach((enemy, index) => {
-                enemy.y += 2;
+                enemy.y += 2 + wave * 0.5;
                 if (enemy.y > canvas.height) {
                     enemies.splice(index, 1);
                     lives--;
-                    scoreboard.textContent = `Score: ${score} | Lives: ${lives}`;
+                    scoreboard.textContent = `Score: ${score} | Lives: ${lives} | Wave: ${wave}`;
 
                     if (lives <= 0) {
                         gameOver = true;
@@ -182,7 +192,14 @@
                         enemies.splice(eIndex, 1);
                         bullets.splice(bIndex, 1);
                         score++;
-                        scoreboard.textContent = `Score: ${score} | Lives: ${lives}`;
+                        hitSound.play();
+                        scoreboard.textContent = `Score: ${score} | Lives: ${lives} | Wave: ${wave}`;
+
+                        if (enemies.length === 0) {
+                            wave++;
+                            spawnEnemies();
+                            scoreboard.textContent = `Score: ${score} | Lives: ${lives} | Wave: ${wave}`;
+                        }
                     }
                 });
             });
@@ -195,12 +212,27 @@
             gameOverMessage.style.display = 'block';
             gameOverMessage.innerHTML = `Game Over<br>Your Score: ${score}`;
             restartButton.style.display = 'block';
+            backgroundMusic.pause();
         }
 
         // Restart the game
         function restartGame() {
             initGame();
         }
+
+        // Player movement
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            player.x = e.clientX - rect.left - player.width / 2;
+        });
+
+        // Player shooting
+        canvas.addEventListener('click', () => {
+            if (!paused && !gameOver) {
+                bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, width: 4, height: 10 });
+                shootSound.play();
+            }
+        });
 
         // Start game
         initGame();
